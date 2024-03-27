@@ -2,6 +2,7 @@ package edu.iu.c322.midterm.repository;
 
 import edu.iu.c322.midterm.model.Question;
 import edu.iu.c322.midterm.model.Quiz;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -23,6 +24,7 @@ public class FileRepository {
     private static final String QUESTION_DATABASE_NAME = "quizzes/questions.txt";
     private static final String QUIZ_DATABASE_NAME = "quizzes/quizzes.txt";
 
+    @Autowired
     public FileRepository() {
         File imagesDirectory = new File(IMAGES_FOLDER_PATH);
         if(!imagesDirectory.exists()) {
@@ -54,6 +56,22 @@ public class FileRepository {
         return id;
     }
 
+    public int addQuiz(Quiz quiz) throws IOException {
+        Path path = Paths.get(QUIZ_DATABASE_NAME);
+        List<Quiz> quizs = findAllQuiz();
+        int id = 0;
+        for(Quiz q : quizs) {
+            if(q.getId() > id) {
+                id = q.getId();
+            }
+        }
+        id = id + 1;
+        quiz.setId(id);
+        String data = quiz.toLine(id);
+        appendToFile(path, data + NEW_LINE);
+        return id;
+    }
+
 
 
 
@@ -73,8 +91,20 @@ public class FileRepository {
         return result;
     }
 
-
-
+    public List<Quiz> findAllQuiz() throws IOException{
+        List<Quiz> result = new ArrayList<>();
+        Path path = Paths.get(QUIZ_DATABASE_NAME);
+        if (Files.exists(path)) {
+            List<String> data = Files.readAllLines(path);
+            for (String line : data) {
+                if(line.trim().length() != 0) {
+                    Quiz q = Quiz.fromLine(line);
+                    result.add(q);
+                }
+            }
+        }
+        return result;
+    }
 
 
     public List<Question> find(String answer) throws IOException {
@@ -111,6 +141,18 @@ public class FileRepository {
         return null;
     }
 
+    public Quiz getQuiz(Integer id) throws IOException {
+        List<Quiz> quizs = findAllQuiz();
+        for (Quiz quiz : quizs) {
+            if (quiz.getId() == id) {
+                return quiz;
+            }
+        }
+        return null;
+    }
+
+
+
     public boolean updateImage(int id, MultipartFile file) throws IOException {
         System.out.println(file.getOriginalFilename());
         System.out.println(file.getContentType());
@@ -132,4 +174,27 @@ public class FileRepository {
     }
 
 
+    public void updateQuiz(Quiz updatedQuiz) throws IOException {
+        List<Quiz> quizzes = findAllQuiz();
+        boolean quizExists = false;
+        for (int i = 0; i < quizzes.size(); i++) {
+            if (quizzes.get(i).getId().equals(updatedQuiz.getId())) {
+                quizzes.set(i, updatedQuiz);
+                quizExists = true;
+                break;
+            }
+        }
+
+        if (!quizExists) {
+            quizzes.add(updatedQuiz);
+        }
+
+        Path path = Paths.get(QUIZ_DATABASE_NAME);
+        Files.write(path, quizzes.stream().map(Quiz::toLine).toList(), StandardCharsets.UTF_8, StandardOpenOption.TRUNCATE_EXISTING);
+    }
+
+
+
+
 }
+

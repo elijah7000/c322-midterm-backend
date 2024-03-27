@@ -2,6 +2,7 @@ package edu.iu.c322.midterm.model;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class Quiz {
 
@@ -10,11 +11,21 @@ public class Quiz {
     private List<Integer> questionIds;
 
     private List<Question> questions;
+    public Quiz() {
+    }
 
     public Quiz(Integer id, String quizTitle, List<Integer> questionIds) {
         this.id = id;
         this.title = quizTitle;
         this.questionIds = questionIds;
+    }
+    public Quiz(String title, List<Integer> questionIds) {
+        this.title = title;
+        this.questionIds = questionIds;
+    }
+    public String toLine() {
+        String questionIdsString = questionIds.stream().map(String::valueOf).collect(Collectors.joining(","));
+        return String.format("%d,%s,%s", id, title, questionIdsString);
     }
 
     public String toLine(int quizId) {
@@ -22,7 +33,7 @@ public class Quiz {
         String line = String.format("%1s,%2s, %3s",
                 quizId,
                 getTitle(),
-                              questionIds);
+                questionIds);
         return line;
     }
 

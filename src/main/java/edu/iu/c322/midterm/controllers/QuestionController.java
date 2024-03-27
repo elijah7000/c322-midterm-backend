@@ -12,8 +12,8 @@ import java.io.IOException;
 import java.util.List;
 
 @RestController
-@CrossOrigin
 @RequestMapping("/questions")
+@CrossOrigin
 public class QuestionController {
 
     private FileRepository fileRepository;
